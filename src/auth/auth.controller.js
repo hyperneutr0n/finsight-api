@@ -58,7 +58,7 @@ exports.login = (req, res) => {
           user,
           token,
         });
-      } else {
+      } else if (user.emailVerified === false) {
         sendEmailVerification(user)
           .then(() => {
             res.status(200).json({
