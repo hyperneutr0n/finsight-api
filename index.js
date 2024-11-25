@@ -5,6 +5,7 @@ const authRoutes = require("./src/auth/auth.routes");
 const app = express();
 app.use(express.json());
 
+
 //ROUTES
 
 //Auth routes
