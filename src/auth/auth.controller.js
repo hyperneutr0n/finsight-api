@@ -5,9 +5,15 @@ const {
   sendEmailVerification,
 } = require("firebase/auth");
 
-const { auth, db } = require("./firebase");
-const admin = require("./firebase.admin");
-const { collection, addDoc } = require("firebase/firestore");
+const { auth, db } = require("../firebase");
+const admin = require("../firebase.admin");
+const {
+  doc,
+  setDoc,
+  collection,
+  addDoc,
+  getDoc,
+} = require("firebase/firestore");
 
 //LOGIN normal
 exports.login = async (req, res) => {
@@ -22,20 +28,20 @@ exports.login = async (req, res) => {
     const user = userCredential.user;
     if (user.emailVerified === true) {
       const token = await user.getIdToken();
-      res.status(200).json({
+      return res.status(200).json({
         message: "Login successful!",
         user,
         token,
       });
     } else if (user.emailVerified === false) {
       await sendEmailVerification(user);
-      res.status(400).json({
+      return res.status(400).json({
         message: "Verify your email first, please check your email!",
       });
     }
   } catch (error) {
     const errorMessage = error.message;
-    res.status(400).json({
+    return res.status(400).json({
       message: "Invalid credentials!",
       error: errorMessage,
     });
@@ -56,10 +62,10 @@ exports.register = async (req, res) => {
 
     try {
       //adding user
-      const userRef = collection(db, "users");
-      await addDoc(userRef, {
+      const userRef = doc(db, "users", user.uid);
+
+      await setDoc(userRef, {
         username: user.email,
-        uid: user.uid,
         createdAt: new Date(),
         profileRisk: "",
       });
@@ -67,13 +73,13 @@ exports.register = async (req, res) => {
       try {
         // send michat
         await sendEmailVerification(user);
-        res.status(200).json({
+        return res.status(200).json({
           message: "Registration successful! Verification email sent.",
           user,
         });
       } catch (error) {
         const errorMessage = error.message;
-        res.status(500).json({
+        return res.status(500).json({
           message:
             "Registration successful, but failed to send email verification!",
           error: errorMessage,
@@ -81,14 +87,14 @@ exports.register = async (req, res) => {
       }
     } catch (error) {
       const errorMessage = error.message;
-      res.status(500).json({
+      return res.status(500).json({
         message: "Failed to add user data to Firestore!",
         error: errorMessage,
       });
     }
   } catch (error) {
     const errorMessage = error.message;
-    res.status(400).json({
+    return res.status(400).json({
       message: "Registration failed!",
       errorMessage,
     });

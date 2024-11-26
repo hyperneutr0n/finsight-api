@@ -2,14 +2,15 @@
 require("dotenv").config();
 const express = require("express");
 const authRoutes = require("./src/auth/auth.routes");
+const userRoutes = require("./src/users/users.routes");
 const app = express();
 app.use(express.json());
-
 
 //ROUTES
 
 //Auth routes
 app.use("/auth", authRoutes); //base route /auth, additional methods will be handled in auth.routes.js
+app.use("/users", userRoutes);
 
 //ML routes
 
