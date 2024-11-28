@@ -11,5 +11,6 @@ const router = express.Router();
 //router.post("/google-login", authController.googlelogin);
 router.post("/login", authController.login);
 router.post("/register", authController.register);
+router.post("/test", authController.test);
 
 module.exports = router;
