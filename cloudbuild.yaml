@@ -17,3 +17,5 @@ steps:
         --platform managed \
         --allow-unauthenticated \
         --set-env-vars FINSIGHT_SECRET=$FINSIGHT_SECRET
+options:
+  logging: CLOUD_LOGGING_ONLY
