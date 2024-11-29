@@ -15,6 +15,6 @@ steps:
         --region asia-southeast2 \
         --platform managed \
         --allow-unauthenticated \
-        --set-env-vars FINSIGHT_SECRET="$(gcloud secrets versions access latest) --secret=finsight-env-secret)"
+        --set-env-vars FINSIGHT_SECRET="$(gcloud secrets versions access latest --secret=finsight-env-secret)"
 options:
   logging: CLOUD_LOGGING_ONLY
