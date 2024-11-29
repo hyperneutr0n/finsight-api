@@ -1,5 +1,5 @@
 substitutions:
-  _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/finsight-api/finsight-api'
+  _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/bangkit-capstone-441617/finsight-api/finsight-api'
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
