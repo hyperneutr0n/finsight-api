@@ -140,20 +140,20 @@ exports.register = async (req, res) => {
  * @description
  * Token verification method
  * 
- * @return {JSON | void}
- * JSON Formatted responses or void
+ * @return {JSON}
+ * JSON Formatted responses
  * 
  * @see
  * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
  */
 exports.test = (req, res) => {
   // Extract the token from the Authorization header
-  const token = req.headers.authorization?.split(" ")[1]; 
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       status: "failed",
-      message: "Authorization token missing or invalid" 
+      message: "Authorization token missing or invalid"
     });
   }
 
@@ -162,15 +162,15 @@ exports.test = (req, res) => {
     .verifyIdToken(token)
     .then((decodedToken) => {
       const uid = decodedToken.uid;
-      res.status(200).json({ 
+      return res.status(200).json({
         status: "success",
-        message: "Authenticated successfully", uid: uid 
+        message: "Authenticated successfully", uid: uid
       });
     })
     .catch((error) => {
-      res.status(401).json({
-        status: "failed", 
-        message: "Invalid token", error: error.message 
+      return res.status(401).json({
+        status: "failed",
+        message: "Invalid token", error: error.message
       });
     });
 };
