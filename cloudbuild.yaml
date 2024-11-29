@@ -17,7 +17,6 @@ steps:
           --image $_IMAGE_NAME:$COMMIT_SHA \
           --region asia-southeast2 \
           --platform managed \
-          --allow-unauthenticated \
-          --mount-secret volume=finsight-env-secret:/secrets/finsight-env-secret
+          --allow-unauthenticated 
 options:
   logging: CLOUD_LOGGING_ONLY
