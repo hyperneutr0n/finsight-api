@@ -10,12 +10,11 @@ steps:
   args:
     - '-c'
     - |
-      export FINSIGHT_SECRET=$(gcloud secrets versions access latest --secret=finsight-env-secret)
       gcloud run deploy finsight-api \
         --image asia-southeast2-docker.pkg.dev/$PROJECT_ID/finsight-api/finsight-api:$COMMIT_SHA \
         --region asia-southeast2 \
         --platform managed \
         --allow-unauthenticated \
-        --set-env-vars FINSIGHT_SECRET=$FINSIGHT_SECRET
+        --set-env-vars FINSIGHT_SECRET="$(gcloud secrets versions access latest --secret=finsight-env-secret)"
 options:
   logging: CLOUD_LOGGING_ONLY
