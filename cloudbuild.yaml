@@ -1,5 +1,6 @@
 substitutions:
   _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/finsight-api/finsight-api'
+
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_IMAGE_NAME:$COMMIT_SHA', '.']
@@ -12,12 +13,11 @@ steps:
     args:
       - '-c'
       - |
-        SECRET_VALUE=$(gcloud secrets versions access latest --secret=finsight-env-secret)
         gcloud run deploy finsight-api \
           --image $_IMAGE_NAME:$COMMIT_SHA \
           --region asia-southeast2 \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars FINSIGHT_SECRET="$SECRET_VALUE"
+          --mount-secret volume=finsight-env-secret:/secrets/finsight-env-secret
 options:
   logging: CLOUD_LOGGING_ONLY

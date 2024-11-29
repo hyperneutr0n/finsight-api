@@ -10,6 +10,26 @@ const app = express();
 app.use(express.json());
 
 /**
+ * Load secrets from mounted file if available
+ */
+const secretFilePath = "/secrets/finsight-env-secret";
+if (fs.existsSync(secretFilePath)) {
+  console.log("Loading secrets from mounted file...");
+  const secretContent = fs.readFileSync(secretFilePath, "utf-8");
+  const envVars = Object.fromEntries(
+    secretContent
+      .split("\n")
+      .map((line) => line.split("="))
+      .filter((pair) => pair.length === 2)
+  );
+
+  // Merge the loaded secrets into process.env
+  process.env = { ...process.env, ...envVars };
+} else {
+  console.log("No secrets file found. Using existing environment variables.");
+}
+
+/**
  * Default routing
  */
 app.use("/", defaultRoutes); 
