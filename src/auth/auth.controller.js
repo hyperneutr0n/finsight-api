@@ -105,7 +105,7 @@ exports.register = async (req, res) => {
         return res.status(201).json({
           status: "success",
           message: "Registration successful! Verification email sent.",
-          user,
+          user: user.uid,
         });
       } catch (error) {
         const errorMessage = error.message;
