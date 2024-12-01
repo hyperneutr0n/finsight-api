@@ -46,7 +46,7 @@ exports.login = async (req, res) => {
       return res.status(200).json({
         status: "success",
         message: "Login successful!",
-        user: user.uid,
+        uid: user.uid,
         token,
       });
     } else if (user.emailVerified === false) {
@@ -105,7 +105,7 @@ exports.register = async (req, res) => {
         return res.status(201).json({
           status: "success",
           message: "Registration successful! Verification email sent.",
-          user: user.uid,
+          uid: user.uid,
         });
       } catch (error) {
         const errorMessage = error.message;
