@@ -14,5 +14,6 @@ router.get("/profile", userController.read);
  * Post routes
  */
 router.post("/update", userController.update);
+router.post("/follow", userController.following);
 
 module.exports = router;
