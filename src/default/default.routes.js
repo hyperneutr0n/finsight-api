@@ -6,9 +6,9 @@ const router = express.Router();
  * Get routes
  */
 router.get("/", async (req, res) => {
-  return res.status(200).json( {
+  return res.status(200).json({
     status: "success",
-    message: "Request with GET method received."
+    message: "Request with GET method received.",
   });
 });
 
@@ -16,9 +16,9 @@ router.get("/", async (req, res) => {
  * Post routes
  */
 router.post("/", async (req, res) => {
-  return res.status(200).json( {
+  return res.status(200).json({
     status: "success",
-    message: "Request with POST method received."
+    message: "Request with POST method received.",
   });
 });
 

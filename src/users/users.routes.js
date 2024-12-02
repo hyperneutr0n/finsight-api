@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Get routes
  */
-router.get("/profile", userController.read);
+router.post("/profile", userController.read);
 
 /**
  * Post routes
