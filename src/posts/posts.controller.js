@@ -43,11 +43,29 @@ exports.create = async (req, res) => {
 
 exports.read = async (req, res) => {
   try {
-    const querySnapshot = await getDocs(collection(db, "posts"));
+    const { uid } = req.params;
 
-    const posts = querySnapshot.docs.map((doc) => ({
+    if (!uid) {
+      return res.status(400).json({
+        status: "failed",
+        message: "UID is required!",
+      });
+    }
+
+    const postQuerySnapshot = await getDocs(collection(db, "posts"));
+
+    const likeQuerySnapshot = await getDocs(
+      query(collection(db, "likes"), where("authorUid", "==", uid))
+    );
+
+    const likePostIds = new Set(
+      likeQuerySnapshot.docs.map((doc) => doc.data().postId)
+    );
+
+    const posts = postQuerySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
+      liked: likePostIds.has(doc.id),
     }));
 
     res.status(200).json({
@@ -219,4 +237,3 @@ exports.like = async (req, res) => {
     });
   }
 };
-    

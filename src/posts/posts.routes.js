@@ -15,7 +15,7 @@ router.post("/likes", postController.like);
 /**
  * Get routes
  */
-router.get("/all", postController.read);
+router.get("/all/:uid", postController.read);
 router.get("/followings/:uid", postController.getFollowedPosts);
 router.get("/comments/:postId", postController.specificPosts);
 
