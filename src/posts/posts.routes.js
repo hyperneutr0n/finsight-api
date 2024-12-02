@@ -9,7 +9,7 @@ const router = express.Router();
  * Post routes
  */
 router.post("/create", postController.create);
-router.post("/comments", postController.addComment);
+router.post("/newcomment", postController.addComment);
 router.post("/likes", postController.like);
 
 /**
