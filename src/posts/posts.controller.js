@@ -15,6 +15,18 @@ const {
   increment,
 } = require("firebase/firestore");
 
+/**
+ * @method create
+ *
+ * @description
+ * Create post in finsight's social
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.create = async (req, res) => {
   const { uid, title, content } = req.body;
 
@@ -41,6 +53,18 @@ exports.create = async (req, res) => {
   }
 };
 
+/**
+ * @method read
+ *
+ * @description
+ * Get all posts in fnsight's social
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.read = async (req, res) => {
   try {
     const { uid } = req.params;
@@ -82,6 +106,18 @@ exports.read = async (req, res) => {
   }
 };
 
+/**
+ * @method getFollowedPosts
+ *
+ * @description
+ * Get all specified user's posts in finsight's social
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.getFollowedPosts = async (req, res) => {
   const { uid } = req.params;
 
@@ -123,6 +159,18 @@ exports.getFollowedPosts = async (req, res) => {
   }
 };
 
+/**
+ * @method addComment
+ *
+ * @description
+ * Add a comment to a specified post
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.addComment = async (req, res) => {
   const { postId, uid, content } = req.body;
 
@@ -147,6 +195,18 @@ exports.addComment = async (req, res) => {
   }
 };
 
+/**
+ * @method specificPosts
+ *
+ * @description
+ * Get all comments on specified posts in finsight's social
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.specificPosts = async (req, res) => {
   const { postId } = req.params;
 
@@ -175,6 +235,18 @@ exports.specificPosts = async (req, res) => {
   }
 };
 
+/**
+ * @method like
+ *
+ * @description
+ * Like a specified post
+ *
+ * @return {JSON}
+ * JSON Formatted responses
+ *
+ * @see
+ * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
+ */
 exports.like = async (req, res) => {
   const { uid, postId } = req.body;
   try {
