@@ -9,14 +9,14 @@ const router = express.Router();
  * Post routes
  */
 router.post("/create", postController.create);
-router.post("/newcomment", postController.addComment);
+router.post("/comments", postController.addComment);
 router.post("/likes", postController.like);
 
 /**
  * Get routes
  */
-router.post("/all", postController.read);
-router.post("/followings", postController.getFollowedPosts);
-router.post("/comments", postController.specificPosts);
+router.get("/all", postController.read);
+router.get("/followings/:uid", postController.getFollowedPosts);
+router.get("/comments/:postId", postController.specificPosts);
 
 module.exports = router;

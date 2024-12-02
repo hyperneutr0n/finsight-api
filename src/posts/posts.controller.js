@@ -65,7 +65,7 @@ exports.read = async (req, res) => {
 };
 
 exports.getFollowedPosts = async (req, res) => {
-  const { uid } = req.body;
+  const { uid } = req.params;
 
   try {
     const followingRef = collection(doc(db, "users", uid), "followings");
@@ -130,7 +130,7 @@ exports.addComment = async (req, res) => {
 };
 
 exports.specificPosts = async (req, res) => {
-  const { postId } = req.body;
+  const { postId } = req.params;
 
   try {
     const commentsQuery = query(

@@ -26,7 +26,7 @@ const {
  */
 exports.read = async (req, res) => {
   try {
-    const { uid } = req.body;
+    const { uid } = req.params;
 
     if (!uid) {
       return res.status(400).json({
