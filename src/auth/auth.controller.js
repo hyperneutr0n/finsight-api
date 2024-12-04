@@ -17,6 +17,7 @@ const {
   collection,
   addDoc,
   getDoc,
+  getDocs,
 } = require("firebase/firestore");
 
 /**
@@ -32,22 +33,31 @@ const {
  * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
  */
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
     const userCredential = await signInWithEmailAndPassword(
       auth,
-      username,
+      email,
       password
     );
     const user = userCredential.user;
     if (user.emailVerified === true) {
-      const token = await user.getIdToken();
-      return res.status(200).json({
-        status: "success",
-        message: "Login successful!",
-        uid: user.uid,
-        token,
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+
+      if (userSnap.exists()) {
+        const token = await user.getIdToken();
+        return res.status(200).json({
+          status: "success",
+          message: "Login successful!",
+          uid: user.uid,
+          username: userSnap.data().username,
+          token,
+        });
+      }
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found!",
       });
     } else if (user.emailVerified === false) {
       await sendEmailVerification(user);
@@ -79,12 +89,12 @@ exports.login = async (req, res) => {
  * {@link https://docs.google.com/document/d/e/2PACX-1vR2o9aVKf3ExNOvtks7p-lq_dJxUiUhDX3mbnRAdzmIfufrhIYKmMB8k-BsuxuYQNxGqeNAZYvzeh2e/pub Finsight API Documentation}
  */
 exports.register = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, username, password } = req.body;
 
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      username,
+      email,
       password
     );
     const user = userCredential.user;
@@ -94,7 +104,7 @@ exports.register = async (req, res) => {
       const userRef = doc(db, "users", user.uid);
 
       await setDoc(userRef, {
-        username: user.email,
+        username: username,
         createdAt: new Date(),
         profileRisk: "",
       });

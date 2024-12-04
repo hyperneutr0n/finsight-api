@@ -7,6 +7,7 @@ const defaultRoutes = require("./src/default/default.routes");
 const authRoutes = require("./src/auth/auth.routes");
 const userRoutes = require("./src/users/users.routes");
 const postRoutes = require("./src/posts/posts.routes");
+
 const app = express();
 app.use(express.json());
 

@@ -92,16 +92,36 @@ exports.read = async (req, res) => {
       liked: likePostIds.has(doc.id),
     }));
 
+    const authorUids = [...new Set(posts.map((post) => post.authorUid))];
+
+    let userMap = {};
+
+    if (authorUids.length > 0) {
+      const userDocs = await Promise.all(
+        authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
+      );
+
+      userDocs.forEach((doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          userMap[doc.id] = userData.username;
+        }
+      });
+    }
+
+    const postsWithUsernames = posts.map((post) => ({
+      ...post,
+      username: userMap[post.authorUid],
+    }));
+
     res.status(200).json({
       status: "success",
-      posts,
+      posts: postsWithUsernames,
     });
   } catch (error) {
-    const errorMessage = error.message;
-
     res.status(400).json({
       status: "failed",
-      error: errorMessage,
+      error: error.message,
     });
   }
 };
@@ -146,9 +166,32 @@ exports.getFollowedPosts = async (req, res) => {
       ...doc.data(),
     }));
 
+    //map the author uids for each post
+    const authorUids = [...new Set(posts.map((post) => post.authorUid))];
+
+    let userMap = {};
+
+    if (authorUids.length > 0) {
+      const userDocs = await Promise.all(
+        authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
+      );
+
+      userDocs.forEach((doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          userMap[doc.id] = userData.username;
+        }
+      });
+    }
+
+    const postsWithUsernames = posts.map((post) => ({
+      ...post,
+      username: userMap[post.authorUid],
+    }));
+
     return res.status(200).json({
       status: "success",
-      posts,
+      posts: postsWithUsernames,
     });
   } catch (error) {
     const errorMessage = error.message;
@@ -223,9 +266,33 @@ exports.specificPosts = async (req, res) => {
       ...doc.data(),
     }));
 
+    const authorUids = [
+      ...new Set(comments.map((comment) => comment.authorUid)),
+    ];
+
+    let userMap = {};
+
+    if (authorUids.length > 0) {
+      const userDocs = await Promise.all(
+        authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
+      );
+
+      userDocs.forEach((doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          userMap[doc.id] = userData.username;
+        }
+      });
+    }
+
+    const commentsWithUsername = comments.map((doc) => ({
+      ...doc,
+      username: userMap[doc.authorUid],
+    }));
+
     return res.status(200).json({
       status: "success",
-      comments,
+      comments: commentsWithUsername,
     });
   } catch (error) {
     return res.status(400).json({
