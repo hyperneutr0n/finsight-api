@@ -1,9 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const puppeteer = require("puppeteer");
 const { formatDistanceToNow } = require("date-fns");
-const { Builder, By, until } = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
 
 const stockCodes = [
   "AAPL",

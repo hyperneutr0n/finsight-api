@@ -93,6 +93,77 @@ exports.read = async (req, res) => {
   }
 };
 
+exports.readProfile = async (req, res) => {
+  try {
+    const { uid, followingUid } = req.params;
+
+    if (!uid || !followingUid) {
+      return res.status(400).json({
+        status: "failed",
+        message: "User not found!",
+      });
+    }
+
+    const userRef = doc(db, "users", followingUid);
+    const snapshot = await getDoc(userRef);
+
+    const postRef = query(
+      collection(db, "posts"),
+      where("authorUid", "==", followingUid)
+    );
+
+    const postSnapshot = await getDocs(postRef);
+
+    const posts = postSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    if (!snapshot.exists()) {
+      return res.status(400).json({
+        status: "failed",
+        message: "User not found!",
+      });
+    }
+
+    const followingRef = collection(doc(db, "users", uid), "followings");
+
+    const followingSnapshot = await getDocs(followingRef);
+
+    const followingUidSet = new Set(
+      followingSnapshot.docs.map((doc) => doc.id)
+    );
+
+    const likeQuerySnapshot = await getDocs(
+      query(collection(db, "likes"), where("authorUid", "==", uid))
+    );
+
+    const likePostIds = new Set(
+      likeQuerySnapshot.docs.map((doc) => doc.data().postId)
+    );
+
+    const postWithLikes = posts.map((doc) => ({
+      ...doc,
+      liked: likePostIds.has(doc.id),
+    }));
+
+    return res.status(200).json({
+      status: "success",
+      message: "User found!",
+      user: snapshot.data(),
+      posts: postWithLikes,
+      isFollowed: followingUidSet.has(followingUid),
+    });
+  } catch (error) {
+    const errorMessage = error.message;
+    return res.status(500).json({
+      status: "failed",
+      message: "Error retrieving user!",
+      error: errorMessage,
+    });
+  }
+};
+
 /**
  * @method update
  *

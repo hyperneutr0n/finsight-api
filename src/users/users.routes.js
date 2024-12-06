@@ -9,6 +9,7 @@ const router = express.Router();
  * Get routes
  */
 router.get("/profile/:uid", userController.read);
+router.get("/profile/:uid/:followingUid", userController.readProfile);
 
 /**
  * Post routes
