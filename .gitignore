@@ -25,3 +25,6 @@ tests/
 # Ignore build artifacts
 dist/
 build/
+
+# Ignore key
+profile-bucket-key.json

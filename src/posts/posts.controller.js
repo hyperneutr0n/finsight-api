@@ -114,6 +114,18 @@ exports.read = async (req, res) => {
       username: userMap[post.authorUid],
     }));
 
+    const followingRef = collection(doc(db, "users", uid), "followings");
+    const followingSnapshot = await getDocs(followingRef);
+    const followingUidSet = new Set(
+      followingSnapshot.docs.map((doc) => doc.id)
+    ); // Use Set for quick lookup
+
+    const postsWithUsernamesAndFollowStatus = posts.map((post) => ({
+      ...post,
+      username: userMap[post.authorUid],
+      isFollowed: followingUidSet.has(post.authorUid), // Check if authorUid is in followings
+    }));
+
     res.status(200).json({
       status: "success",
       posts: postsWithUsernames,
@@ -327,7 +339,7 @@ exports.like = async (req, res) => {
       console.error("Invalid post reference");
       return res.status(400).json({ error: "Invalid post reference" });
     }
-    const checkExistingLike = query (
+    const checkExistingLike = query(
       likeRef,
       where("authorUid", "==", uid),
       where("postId", "==", postId)

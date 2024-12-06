@@ -17,7 +17,21 @@ const {
 } = require("firebase/firestore");
 
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const upload = multer({
+  dest: "uploads/",
+  limit: { fileSize: 1000000 },
+}).single("image");
+
+const { Storage } = require("@google-cloud/storage");
+
+const { MulterGoogleCloudStorage } = require("multer-google-storage");
+
+const storage = new Storage({
+  projectId: process.env.PROJECT_ID,
+  keyFilename: process.env.PROFILE_BUCKET_KEY,
+});
+
+const bucket = storage.bucket("finsight-profile");
 
 /**
  * @method read
@@ -123,7 +137,45 @@ exports.update = async (req, res) => {
 };
 
 exports.addPhoto = async (req, res) => {
-  
+  try {
+    await new Promise((resolve, reject) => {
+      upload(req, res, function (err) {
+        if (err) {
+          if (
+            err instanceof multer.MulterError &&
+            err.code === "LIMIT_FILE_SIZE"
+          ) {
+            return reject({
+              status: 413,
+              message:
+                "Payload content length greater than maximum allowed: 1000000",
+            });
+          }
+          return reject({
+            status: 400,
+            message: "An error occurred during file upload. Please try again.",
+          });
+        }
+        resolve();
+      });
+    });
+
+    const { uid } = req.body;
+    const { image } = req.file;
+
+    if (!uid || !image) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Image or UID is unavailable",
+      });
+    }
+
+    const tempPath = file.path;
+
+    const newFileName = `${uid}${path.extname(file.originalname)}`;
+
+    const targetPath = path.join("uploads", newFileName);
+  } catch (error) {}
 };
 
 exports.following = async (req, res) => {
@@ -169,5 +221,3 @@ exports.following = async (req, res) => {
     });
   }
 };
-
-exports.addprofile = async (req, res) => {};
