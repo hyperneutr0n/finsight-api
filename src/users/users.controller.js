@@ -9,8 +9,15 @@ const {
   collection,
   addDoc,
   getDoc,
+  getDocs,
+  query,
+  where,
   writeBatch,
+  increment,
 } = require("firebase/firestore");
+
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 /**
  * @method read
@@ -38,6 +45,18 @@ exports.read = async (req, res) => {
     const userRef = doc(db, "users", uid);
     const snapshot = await getDoc(userRef);
 
+    const postRef = query(
+      collection(db, "posts"),
+      where("authorUid", "==", uid)
+    );
+
+    const postSnapshot = await getDocs(postRef);
+
+    const posts = postSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
     if (!snapshot.exists()) {
       return res.status(400).json({
         status: "failed",
@@ -48,6 +67,7 @@ exports.read = async (req, res) => {
       status: "success",
       message: "User found!",
       user: snapshot.data(),
+      posts: posts,
     });
   } catch (error) {
     const errorMessage = error.message;
@@ -102,6 +122,10 @@ exports.update = async (req, res) => {
   }
 };
 
+exports.addPhoto = async (req, res) => {
+  
+};
+
 exports.following = async (req, res) => {
   const { uid, followingUid } = req.body;
 
@@ -120,9 +144,16 @@ exports.following = async (req, res) => {
     batch.set(userFollowingRef, {
       followedAt: new Date(),
     });
-
     batch.set(followedUserRef, {
       followedAt: new Date(),
+    });
+
+    batch.update(userRef, {
+      numFollowings: increment(1),
+    });
+
+    batch.update(followingRef, {
+      numFollowers: increment(1),
     });
 
     await batch.commit();
@@ -138,3 +169,5 @@ exports.following = async (req, res) => {
     });
   }
 };
+
+exports.addprofile = async (req, res) => {};

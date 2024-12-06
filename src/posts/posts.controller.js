@@ -327,7 +327,7 @@ exports.like = async (req, res) => {
       console.error("Invalid post reference");
       return res.status(400).json({ error: "Invalid post reference" });
     }
-    const checkExistingLike = query(
+    const checkExistingLike = query (
       likeRef,
       where("authorUid", "==", uid),
       where("postId", "==", postId)

@@ -107,6 +107,8 @@ exports.register = async (req, res) => {
         username: username,
         createdAt: new Date(),
         profileRisk: "",
+        numFollowers: 0,
+        numFollowings: 0,
       });
 
       try {
