@@ -76,26 +76,33 @@ exports.read = async (req, res) => {
       });
     }
 
+    //GET POSTS
     const postQuerySnapshot = await getDocs(collection(db, "posts"));
 
+
+    //QUERY likes based on UID
     const likeQuerySnapshot = await getDocs(
       query(collection(db, "likes"), where("authorUid", "==", uid))
     );
 
+    //SET the results
     const likePostIds = new Set(
       likeQuerySnapshot.docs.map((doc) => doc.data().postId)
     );
 
+    //MAP posts to add data of isLiked
     const posts = postQuerySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       liked: likePostIds.has(doc.id),
     }));
 
+    //SET of author UIDS
     const authorUids = [...new Set(posts.map((post) => post.authorUid))];
 
     let userMap = {};
 
+    //MAPPINNG username to usermap based on UID
     if (authorUids.length > 0) {
       const userDocs = await Promise.all(
         authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
@@ -109,26 +116,29 @@ exports.read = async (req, res) => {
       });
     }
 
+    //MAPPING to add data
     const postsWithUsernames = posts.map((post) => ({
       ...post,
       username: userMap[post.authorUid],
     }));
 
+    //COLLECTION
     const followingRef = collection(doc(db, "users", uid), "followings");
     const followingSnapshot = await getDocs(followingRef);
     const followingUidSet = new Set(
       followingSnapshot.docs.map((doc) => doc.id)
-    ); // Use Set for quick lookup
+    ); 
 
+    //MAPPING to add data
     const postsWithUsernamesAndFollowStatus = posts.map((post) => ({
       ...post,
       username: userMap[post.authorUid],
-      isFollowed: followingUidSet.has(post.authorUid), // Check if authorUid is in followings
+      isFollowed: followingUidSet.has(post.authorUid),
     }));
 
     res.status(200).json({
       status: "success",
-      posts: postsWithUsernames,
+      posts: postsWithUsernamesAndFollowStatus,
     });
   } catch (error) {
     res.status(400).json({
