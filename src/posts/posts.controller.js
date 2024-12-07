@@ -15,6 +15,20 @@ const {
   increment,
 } = require("firebase/firestore");
 
+const fs = require("fs");
+
+const { Storage } = require("@google-cloud/storage");
+
+const crypto = require("crypto");
+const { post } = require("selenium-webdriver/http");
+
+const storage = new Storage({
+  projectId: process.env.PROJECT_ID,
+  keyFilename: process.env.PROFILE_BUCKET_KEY,
+});
+
+const bucket = storage.bucket("finsight-profile");
+
 /**
  * @method create
  *
@@ -29,6 +43,7 @@ const {
  */
 exports.create = async (req, res) => {
   const { uid, title, content } = req.body;
+  const file = req.file;
 
   try {
     const docRef = await addDoc(collection(db, "posts"), {
@@ -39,16 +54,44 @@ exports.create = async (req, res) => {
       likes: 0,
     });
 
+    const postId = docRef.id;
+
+    const gcs = storage.bucket("finsight-profile");
+    const storagePath = `posts/${postId}`;
+    const filePath = file.path;
+
+    await gcs.upload(filePath, {
+      destination: storagePath,
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+
+    fs.unlinkSync(filePath);
+
+    const publicUrl = `https://storage.googleapis.com/finsight-profile/${storagePath}`;
+
+    const postDocRef = doc(db, "posts", postId);
+
+    await setDoc(
+      postDocRef,
+      {
+        postUrl: publicUrl,
+      },
+      {
+        merge: true,
+      }
+    );
+
     return res.status(200).json({
       status: "success",
       message: "Post created successfully!",
     });
   } catch (error) {
-    const errorMessage = error.message;
-
     return res.status(400).json({
       status: "failed",
       message: "Failed to create a post!",
+      error: error.message,
     });
   }
 };
@@ -57,7 +100,7 @@ exports.create = async (req, res) => {
  * @method read
  *
  * @description
- * Get all posts in fnsight's social
+ * Get all posts in finsight's social
  *
  * @return {JSON}
  * JSON Formatted responses
@@ -78,7 +121,6 @@ exports.read = async (req, res) => {
 
     //GET POSTS
     const postQuerySnapshot = await getDocs(collection(db, "posts"));
-
 
     //QUERY likes based on UID
     const likeQuerySnapshot = await getDocs(
@@ -102,7 +144,9 @@ exports.read = async (req, res) => {
 
     let userMap = {};
 
-    //MAPPINNG username to usermap based on UID
+    let profileUrl = {};
+
+    //MAPPING username to usermap based on UID
     if (authorUids.length > 0) {
       const userDocs = await Promise.all(
         authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
@@ -111,7 +155,9 @@ exports.read = async (req, res) => {
       userDocs.forEach((doc) => {
         if (doc.exists()) {
           const userData = doc.data();
+          console.log(userData);
           userMap[doc.id] = userData.username;
+          profileUrl[doc.id] = userData.profileUrl;
         }
       });
     }
@@ -120,6 +166,7 @@ exports.read = async (req, res) => {
     const postsWithUsernames = posts.map((post) => ({
       ...post,
       username: userMap[post.authorUid],
+      profileUrl: profileUrl[post.authorUid],
     }));
 
     //COLLECTION
@@ -127,14 +174,15 @@ exports.read = async (req, res) => {
     const followingSnapshot = await getDocs(followingRef);
     const followingUidSet = new Set(
       followingSnapshot.docs.map((doc) => doc.id)
-    ); 
+    );
 
     //MAPPING to add data
-    const postsWithUsernamesAndFollowStatus = posts.map((post) => ({
-      ...post,
-      username: userMap[post.authorUid],
-      isFollowed: followingUidSet.has(post.authorUid),
-    }));
+    const postsWithUsernamesAndFollowStatus = postsWithUsernames.map(
+      (post) => ({
+        ...post,
+        isFollowed: followingUidSet.has(post.authorUid),
+      })
+    );
 
     res.status(200).json({
       status: "success",
@@ -193,6 +241,8 @@ exports.getFollowedPosts = async (req, res) => {
 
     let userMap = {};
 
+    let profileUrl = {};
+
     if (authorUids.length > 0) {
       const userDocs = await Promise.all(
         authorUids.map((authorUid) => getDoc(doc(db, "users", authorUid)))
@@ -202,6 +252,7 @@ exports.getFollowedPosts = async (req, res) => {
         if (doc.exists()) {
           const userData = doc.data();
           userMap[doc.id] = userData.username;
+          profileUrl[doc.id] = userData.profileUrl;
         }
       });
     }
@@ -209,6 +260,7 @@ exports.getFollowedPosts = async (req, res) => {
     const postsWithUsernames = posts.map((post) => ({
       ...post,
       username: userMap[post.authorUid],
+      profileUrl: profileUrl[post.authorUid],
     }));
 
     return res.status(200).json({
@@ -293,6 +345,7 @@ exports.specificPosts = async (req, res) => {
     ];
 
     let userMap = {};
+    let profileUrl = {};
 
     if (authorUids.length > 0) {
       const userDocs = await Promise.all(
@@ -303,6 +356,7 @@ exports.specificPosts = async (req, res) => {
         if (doc.exists()) {
           const userData = doc.data();
           userMap[doc.id] = userData.username;
+          profileUrl[doc.id] = userData.profileUrl;
         }
       });
     }
@@ -310,6 +364,7 @@ exports.specificPosts = async (req, res) => {
     const commentsWithUsername = comments.map((doc) => ({
       ...doc,
       username: userMap[doc.authorUid],
+      profileUrl: profileUrl[doc.authorUid],
     }));
 
     return res.status(200).json({

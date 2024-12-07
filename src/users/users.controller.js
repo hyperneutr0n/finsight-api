@@ -16,15 +16,9 @@ const {
   increment,
 } = require("firebase/firestore");
 
-const multer = require("multer");
-const upload = multer({
-  dest: "uploads/",
-  limit: { fileSize: 1000000 },
-}).single("image");
+const fs = require("fs");
 
 const { Storage } = require("@google-cloud/storage");
-
-const { MulterGoogleCloudStorage } = require("multer-google-storage");
 
 const storage = new Storage({
   projectId: process.env.PROJECT_ID,
@@ -207,46 +201,75 @@ exports.update = async (req, res) => {
   }
 };
 
+// await new Promise((resolve, reject) => {
+//   upload(req, res, function (err) {
+//     if (err) {
+//       if (
+//         err instanceof multer.MulterError &&
+//         err.code === "LIMIT_FILE_SIZE"
+//       ) {
+//         return reject({
+//           status: 413,
+//           message:
+//             "Payload content length greater than maximum allowed: 1000000",
+//         });
+//       }
+//       return reject({
+//         status: 400,
+//         message: "An error occurred during file upload. Please try again.",
+//       });
+//     }
+//     resolve();
+//   });
+// });
 exports.addPhoto = async (req, res) => {
   try {
-    await new Promise((resolve, reject) => {
-      upload(req, res, function (err) {
-        if (err) {
-          if (
-            err instanceof multer.MulterError &&
-            err.code === "LIMIT_FILE_SIZE"
-          ) {
-            return reject({
-              status: 413,
-              message:
-                "Payload content length greater than maximum allowed: 1000000",
-            });
-          }
-          return reject({
-            status: 400,
-            message: "An error occurred during file upload. Please try again.",
-          });
-        }
-        resolve();
-      });
-    });
-
     const { uid } = req.body;
-    const { image } = req.file;
+    const file = req.file;
 
-    if (!uid || !image) {
+    if (!uid || !file) {
       return res.status(400).json({
         status: "failed",
         message: "Image or UID is unavailable",
       });
     }
 
-    const tempPath = file.path;
+    const gcs = storage.bucket("finsight-profile");
+    const storagePath = `images/${uid}`;
+    const filePath = file.path;
 
-    const newFileName = `${uid}${path.extname(file.originalname)}`;
+    // Upload to Google Cloud Storage
+    await gcs.upload(filePath, {
+      destination: storagePath,
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
 
-    const targetPath = path.join("uploads", newFileName);
-  } catch (error) {}
+    // Clean up the local file
+    fs.unlinkSync(filePath);
+
+    // Construct the public URL
+    const publicUrl = `https://storage.googleapis.com/finsight-profile/${storagePath}`;
+    const batch = writeBatch(db);
+    const userRef = doc(db, "users", uid);
+
+    batch.update(userRef, {
+      profileUrl: publicUrl,
+    });
+
+    await batch.commit();
+    return res.status(200).json({
+      status: "success",
+      message: "Image uploaded successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while uploading the image",
+    });
+  }
 };
 
 exports.following = async (req, res) => {
