@@ -54,6 +54,13 @@ exports.create = async (req, res) => {
       likes: 0,
     });
 
+    if (!file) {
+      return res.status(200).json({
+        status: "success",
+        message: "Post created successfully!",
+      });
+    }
+
     const postId = docRef.id;
 
     const gcs = storage.bucket("finsight-profile");

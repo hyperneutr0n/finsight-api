@@ -14,6 +14,7 @@ const {
   where,
   writeBatch,
   increment,
+  documentId,
 } = require("firebase/firestore");
 
 const fs = require("fs");
@@ -312,6 +313,94 @@ exports.following = async (req, res) => {
     res.status(400).json({
       status: "fail",
       message: "Failed to follow user!",
+    });
+  }
+};
+
+exports.getFollowers = async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const userRef = doc(db, "users", uid);
+
+    const followersRef = collection(userRef, "followers");
+
+    const followerSnapshot = await getDocs(followersRef);
+
+    const followerIds = followerSnapshot.docs.map((doc) => doc.id);
+
+    if (followerIds.length === 0) {
+      return res.status(200).json({
+        status: "success",
+        followers: [],
+      });
+    }
+
+    const userQuery = query(
+      collection(db, "users"),
+      where(documentId(), "in", followerIds)
+    );
+
+    const userSnapshot = await getDocs(userQuery);
+
+    const followers = userSnapshot.docs.map((doc) => ({
+      uid: doc.id,
+      username: doc.data().username,
+      profileUrl: doc.data().profileUrl,
+    }));
+
+    return res.status(200).json({
+      status: "success",
+      followers: followers,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch followers.",
+    });
+  }
+};
+
+exports.getFollowings = async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const userRef = doc(db, "users", uid);
+
+    const followersRef = collection(userRef, "followings");
+
+    const followerSnapshot = await getDocs(followersRef);
+
+    const followerIds = followerSnapshot.docs.map((doc) => doc.id);
+
+    if (followerIds.length === 0) {
+      return res.status(200).json({
+        status: "success",
+        followers: [],
+      });
+    }
+
+    const userQuery = query(
+      collection(db, "users"),
+      where(documentId(), "in", followerIds)
+    );
+
+    const userSnapshot = await getDocs(userQuery);
+
+    const followers = userSnapshot.docs.map((doc) => ({
+      uid: doc.id,
+      username: doc.data().username,
+      profileUrl: doc.data().profileUrl,
+    }));
+
+    return res.status(200).json({
+      status: "success",
+      followings: followers,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch followings.",
     });
   }
 };

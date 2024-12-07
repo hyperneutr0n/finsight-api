@@ -15,6 +15,9 @@ const upload = multer({
  */
 router.get("/profile/:uid", userController.read);
 router.get("/profile/:uid/:followingUid", userController.readProfile);
+//router.get("/profile/followings/:uid", userController.getFollowings);
+router.get("/followers/:uid", userController.getFollowers);
+router.get("/followings/:uid", userController.getFollowings);
 
 /**
  * Post routes
