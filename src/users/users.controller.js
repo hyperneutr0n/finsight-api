@@ -404,3 +404,53 @@ exports.getFollowings = async (req, res) => {
     });
   }
 };
+
+exports.chat = async (req, res) => {
+  const { uidSender, uidReceiver, message } = req.body;
+
+  try {
+    const chatRef = await addDoc(collection(db, "chats"), {
+      uidSender: uidSender,
+      uidReceiver: uidReceiver,
+      message: message,
+      createdAt: new Date(),
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Chat sent successfully!",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "failed",
+      message: "Failed to send chat!",
+    });
+  }
+};
+
+exports.getChat = async (req, res) => {
+  const { uidSender, uidReceiver } = req.params;
+
+  try {
+    const userSenderRef = doc(collection(db, "users"), uidSender);
+    const uidReceiverRef = doc(collection(db, "users"), uidReceiver);
+
+    const chatSnapshot = await getDocs(
+      query(collection(db, "chats")),
+      where("uidSender", "in", [uidSender, uidReceiver]),
+      where("uidReceiver", "in", [uidSender, uidReceiver])
+    );
+
+    const messages = chatSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    messages.sort((a, b) => a.createdAt - b.createdAt);
+
+    res.status(200).json({
+      status: "success",
+      chats: messages,
+    });
+  } catch (error) {}
+};

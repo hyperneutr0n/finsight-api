@@ -18,12 +18,14 @@ router.get("/profile/:uid/:followingUid", userController.readProfile);
 //router.get("/profile/followings/:uid", userController.getFollowings);
 router.get("/followers/:uid", userController.getFollowers);
 router.get("/followings/:uid", userController.getFollowings);
+router.get("/chat/:uidSender/:uidReceiver", userController.getChat);
 
 /**
  * Post routes
  */
 router.put("/update", userController.update);
 router.post("/follow", userController.following);
+router.post("/chat", userController.chat);
 router.put("/addphoto", upload, userController.addPhoto);
 
 module.exports = router;
