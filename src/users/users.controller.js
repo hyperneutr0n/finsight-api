@@ -432,19 +432,49 @@ exports.getChat = async (req, res) => {
   const { uidSender, uidReceiver } = req.params;
 
   try {
-    const userSenderRef = doc(collection(db, "users"), uidSender);
-    const uidReceiverRef = doc(collection(db, "users"), uidReceiver);
+    const userSenderRef = doc(db, "users", uidSender);
+    const userReceiverRef = doc(db, "users", uidReceiver);
+
+    const userSenderSnapshot = await getDoc(userSenderRef);
+    const userReceiverSnapshot = await getDoc(userReceiverRef);
+
+    if (!userSenderSnapshot.exists() || !userReceiverSnapshot.exists()) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found" });
+    }
+
+    const userSenderData = userSenderSnapshot.data();
+    const userReceiverData = userReceiverSnapshot.data();
+    const usernameSender = userSenderData.username;
+    const usernameReceiver = userReceiverData.username;
 
     const chatSnapshot = await getDocs(
-      query(collection(db, "chats")),
-      where("uidSender", "in", [uidSender, uidReceiver]),
-      where("uidReceiver", "in", [uidSender, uidReceiver])
+      query(
+        collection(db, "chats"),
+        where("uidSender", "in", [uidSender, uidReceiver]),
+        where("uidReceiver", "in", [uidSender, uidReceiver])
+      )
     );
 
-    const messages = chatSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const messages = chatSnapshot.docs.map((doc) => {
+      const messageData = doc.data();
+      return {
+        id: doc.id,
+        message: messageData.message,
+        createdAt: messageData.createdAt,
+        uidSender: messageData.uidSender,
+        uidReceiver: messageData.uidReceiver,
+        senderUsername:
+          messageData.uidSender === uidSender
+            ? usernameSender
+            : usernameReceiver,
+        receiverUsername:
+          messageData.uidReceiver === uidReceiver
+            ? usernameReceiver
+            : usernameSender,
+      };
+    });
 
     messages.sort((a, b) => a.createdAt - b.createdAt);
 
@@ -452,5 +482,13 @@ exports.getChat = async (req, res) => {
       status: "success",
       chats: messages,
     });
-  } catch (error) {}
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        status: "error",
+        message: "An error occurred",
+        error: error.message,
+      });
+  }
 };
