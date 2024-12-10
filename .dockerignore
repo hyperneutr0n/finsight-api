@@ -27,3 +27,5 @@ build/
 # Ignore Docker-related files (optional, if not needed inside the image)
 .dockerignore
 Dockerfile
+
+cloudbuild.yaml

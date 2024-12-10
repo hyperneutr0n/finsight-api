@@ -33,7 +33,7 @@ steps:
           --region asia-southeast2 \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars (gcloud secrets versions access latest --secret=$_ENV_SECRET_NAME) \
+          --set-env-vars $(gcloud secrets versions access latest --secret=$_ENV_SECRET_NAME) \
           --update-env-vars PROFILE_BUCKET_KEY_PATH=profile-bucket-key.json
 
 options:
