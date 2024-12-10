@@ -2,7 +2,7 @@ substitutions:
   _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/bangkit-capstone-441617/finsight-api/finsight-api'
   _ENV_SECRET_NAME: 'finsight-env-secret'
   _CREDENTIAL_SECRET_NAME: 'finsight-profile-bucket'
-  
+
 steps:
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -41,7 +41,7 @@ steps:
           --region asia-southeast2 \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars-file $BUILD_ID-secrets.env \
+          --env-vars-file secrets.env \
           --update-env-vars PROFILE_BUCKET_KEY_PATH=profile-bucket-key.json
 
 options:
