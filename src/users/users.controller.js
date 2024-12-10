@@ -273,8 +273,6 @@ exports.addPhoto = async (req, res) => {
   }
 };
 
-const { getDoc, doc, writeBatch, increment, collection } = require("firebase/firestore");
-
 exports.following = async (req, res) => {
   const { uid, followingUid } = req.body;
 
