@@ -273,49 +273,59 @@ exports.addPhoto = async (req, res) => {
   }
 };
 
+const { getDoc, doc, writeBatch, increment, collection } = require("firebase/firestore");
+
 exports.following = async (req, res) => {
   const { uid, followingUid } = req.body;
 
   try {
-    const batch = writeBatch(db);
     const userRef = doc(db, "users", uid);
+    const userFollowingRef = doc(collection(userRef, "followings"), followingUid);
+
+    // Check if the follow relationship already exists
+    const userFollowingSnap = await getDoc(userFollowingRef);
+
     const followingRef = doc(db, "users", followingUid);
-
-    const userFollowingRef = doc(
-      collection(userRef, "followings"),
-      followingUid
-    );
-
     const followedUserRef = doc(collection(followingRef, "followers"), uid);
 
-    batch.set(userFollowingRef, {
-      followedAt: new Date(),
-    });
-    batch.set(followedUserRef, {
-      followedAt: new Date(),
-    });
+    const batch = writeBatch(db);
 
-    batch.update(userRef, {
-      numFollowings: increment(1),
-    });
+    if (userFollowingSnap.exists()) {
+      // If the follow relationship exists, unfollow
+      batch.delete(userFollowingRef);
+      batch.delete(followedUserRef);
+      batch.update(userRef, { numFollowings: increment(-1) });
+      batch.update(followingRef, { numFollowers: increment(-1) });
 
-    batch.update(followingRef, {
-      numFollowers: increment(1),
-    });
+      await batch.commit();
 
-    await batch.commit();
+      return res.status(200).json({
+        status: "success",
+        message: "User unfollowed!",
+      });
+    } else {
+      // If the follow relationship does not exist, follow
+      batch.set(userFollowingRef, { followedAt: new Date() });
+      batch.set(followedUserRef, { followedAt: new Date() });
+      batch.update(userRef, { numFollowings: increment(1) });
+      batch.update(followingRef, { numFollowers: increment(1) });
 
-    res.status(200).json({
-      status: "success",
-      message: "User followed!",
-    });
+      await batch.commit();
+
+      return res.status(200).json({
+        status: "success",
+        message: "User followed!",
+      });
+    }
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       status: "fail",
-      message: "Failed to follow user!",
+      message: "An error occurred!",
+      error: error.message,
     });
   }
 };
+
 
 exports.getFollowers = async (req, res) => {
   try {
