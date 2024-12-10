@@ -2,7 +2,7 @@ substitutions:
   _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/bangkit-capstone-441617/finsight-api/finsight-api'
   _ENV_SECRET_NAME: 'finsight-env-secret'
   _CREDENTIAL_SECRET_NAME: 'finsight-profile-bucket'
-
+  
 steps:
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -19,10 +19,7 @@ steps:
       - '-c'
       - |
         echo "Fetching environment variables secret..."
-        RAW_SECRET=$(gcloud secrets versions access latest --secret=$_ENV_SECRET_NAME)
-        
-        # Remove commas and create .env-style format
-        echo "$RAW_SECRET" | tr -d ',' > $BUILD_ID-secrets.env
+        gcloud secrets versions access latest --secret=$_ENV_SECRET_NAME | tr -d ',' > $BUILD_ID-secrets.env
 
   # Step 4: Fetch service account credential as JSON
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -31,9 +28,7 @@ steps:
       - '-c'
       - |
         echo "Fetching service account credential secret..."
-        CREDENTIAL_SECRET=$(gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME)
-        
-        echo "$CREDENTIAL_SECRET" > profile-bucket-key.json
+        gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME > profile-bucket-key.json
 
   # Step 5: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
