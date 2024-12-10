@@ -278,7 +278,10 @@ exports.following = async (req, res) => {
 
   try {
     const userRef = doc(db, "users", uid);
-    const userFollowingRef = doc(collection(userRef, "followings"), followingUid);
+    const userFollowingRef = doc(
+      collection(userRef, "followings"),
+      followingUid
+    );
 
     // Check if the follow relationship already exists
     const userFollowingSnap = await getDoc(userFollowingRef);
@@ -323,7 +326,6 @@ exports.following = async (req, res) => {
     });
   }
 };
-
 
 exports.getFollowers = async (req, res) => {
   try {
@@ -440,26 +442,64 @@ exports.getChat = async (req, res) => {
   const { uidSender, uidReceiver } = req.params;
 
   try {
+    // References for user documents
     const userSenderRef = doc(collection(db, "users"), uidSender);
     const uidReceiverRef = doc(collection(db, "users"), uidReceiver);
 
-    const chatSnapshot = await getDocs(
-      query(collection(db, "chats")),
+    // Fetch user data for both sender and receiver
+    const userSenderSnapshot = await getDoc(userSenderRef);
+    const userReceiverSnapshot = await getDoc(uidReceiverRef);
+
+    if (!userSenderSnapshot.exists() || !userReceiverSnapshot.exists()) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found" });
+    }
+
+    const profileUserSender = userSenderSnapshot.data();
+    const profileUserReceiver = userReceiverSnapshot.data();
+
+    // Fetch chat messages where sender and receiver match
+    const chatQuery = query(
+      collection(db, "chats"),
       where("uidSender", "in", [uidSender, uidReceiver]),
       where("uidReceiver", "in", [uidSender, uidReceiver])
     );
 
-    const messages = chatSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const chatSnapshot = await getDocs(chatQuery);
 
+    const messages = chatSnapshot.docs.map((doc) => {
+      const messageData = doc.data();
+      // Map sender and receiver profile URL to each message
+      const senderProfileUrl =
+        messageData.uidSender === uidSender
+          ? profileUserSender.profileUrl || null
+          : profileUserReceiver.profileUrl || null;
+
+      const receiverProfileUrl =
+        messageData.uidReceiver === uidReceiver
+          ? profileUserReceiver.profileUrl || null
+          : profileUserSender.profileUrl || null;
+
+      return {
+        id: doc.id,
+        message: messageData.message, // Assuming 'message' is the text content field
+        createdAt: messageData.createdAt,
+        senderProfileUrl, // Only returning profileUrl
+        receiverProfileUrl, // Only returning profileUrl
+      };
+    });
+
+    // Sort messages by timestamp (createdAt)
     messages.sort((a, b) => a.createdAt - b.createdAt);
 
+    // Respond with the chat messages including sender and receiver profile URLs
     res.status(200).json({
       status: "success",
-      chats: messages,
+      chats: messages, // No sender/receiver objects, just profile URLs
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error fetching chat data:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
+  }
 };
-
