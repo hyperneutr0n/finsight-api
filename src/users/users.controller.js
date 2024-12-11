@@ -12,6 +12,7 @@ const {
   getDocs,
   query,
   where,
+  or,
   writeBatch,
   increment,
   documentId,
@@ -442,11 +443,9 @@ exports.getChat = async (req, res) => {
   const { uidSender, uidReceiver } = req.params;
 
   try {
-    // References for user documents
     const userSenderRef = doc(collection(db, "users"), uidSender);
     const uidReceiverRef = doc(collection(db, "users"), uidReceiver);
 
-    // Fetch user data for both sender and receiver
     const userSenderSnapshot = await getDoc(userSenderRef);
     const userReceiverSnapshot = await getDoc(uidReceiverRef);
 
@@ -459,7 +458,6 @@ exports.getChat = async (req, res) => {
     const profileUserSender = userSenderSnapshot.data();
     const profileUserReceiver = userReceiverSnapshot.data();
 
-    // Fetch chat messages where sender and receiver match
     const chatQuery = query(
       collection(db, "chats"),
       where("uidSender", "in", [uidSender, uidReceiver]),
@@ -470,7 +468,6 @@ exports.getChat = async (req, res) => {
 
     const messages = chatSnapshot.docs.map((doc) => {
       const messageData = doc.data();
-      // Map sender and receiver profile URL to each message
       const senderProfileUrl =
         messageData.uidSender === uidSender
           ? profileUserSender.profileUrl || null
@@ -483,23 +480,81 @@ exports.getChat = async (req, res) => {
 
       return {
         id: doc.id,
-        message: messageData.message, // Assuming 'message' is the text content field
+        message: messageData.message,
         createdAt: messageData.createdAt,
-        senderProfileUrl, // Only returning profileUrl
-        receiverProfileUrl, // Only returning profileUrl
+        senderProfileUrl,
+        receiverProfileUrl,
       };
     });
 
-    // Sort messages by timestamp (createdAt)
     messages.sort((a, b) => a.createdAt - b.createdAt);
 
-    // Respond with the chat messages including sender and receiver profile URLs
     res.status(200).json({
       status: "success",
-      chats: messages, // No sender/receiver objects, just profile URLs
+      chats: messages,
     });
   } catch (error) {
     console.error("Error fetching chat data:", error);
     res.status(500).json({ status: "error", message: "Internal server error" });
+  }
+};
+
+exports.getHistoryChat = async (req, res) => {
+  const { uid } = req.params;
+  console.log("Received UID:", uid);
+
+  try {
+    const userRefSnapshot = await getDocs(
+      query(
+        collection(db, "chats"),
+        or(where("uidReceiver", "==", uid), where("uidSender", "==", uid))
+      )
+    );
+
+    if (userRefSnapshot.empty) {
+      return res.status(404).json({
+        status: "success",
+        message: "No chat history found for this user.",
+        history: [],
+      });
+    }
+
+    const uidOtherUsers = userRefSnapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return data.uidReceiver === uid ? data.uidSender : data.uidReceiver;
+    });
+
+    const uniqueUids = [...new Set(uidOtherUsers)];
+    const userDetailsPromises = uniqueUids.map(async (otherUserUid) => {
+      const userDocRef = doc(db, "users", otherUserUid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        console.log("User not found:", otherUserUid);
+        return null;
+      }
+
+      const userData = userDoc.data();
+      return {
+        username: userData.username,
+        uid: otherUserUid,
+        profileUrl: userData.profileUrl,
+      };
+    });
+
+    const userDetails = await Promise.all(userDetailsPromises);
+
+    const uniqueChatUsers = userDetails.filter((user) => user !== null);
+
+    return res.status(200).json({
+      status: "success",
+      users: uniqueChatUsers,
+    });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to fetch chat history",
+    });
   }
 };

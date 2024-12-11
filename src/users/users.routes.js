@@ -19,6 +19,7 @@ router.get("/profile/:uid/:followingUid", userController.readProfile);
 router.get("/followers/:uid", userController.getFollowers);
 router.get("/followings/:uid", userController.getFollowings);
 router.get("/chat/:uidSender/:uidReceiver", userController.getChat);
+router.get("/chat/:uid", userController.getHistoryChat);
 
 /**
  * Post routes
