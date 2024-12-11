@@ -482,6 +482,8 @@ exports.getChat = async (req, res) => {
         id: doc.id,
         message: messageData.message,
         createdAt: messageData.createdAt,
+        uidSender: messageData.uidSender, // Include uidSender
+        uidReceiver: messageData.uidReceiver, // Include uidReceiver
         senderProfileUrl,
         receiverProfileUrl,
       };
