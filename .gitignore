@@ -28,3 +28,8 @@ build/
 
 # Ignore key
 profile-bucket-key.json
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

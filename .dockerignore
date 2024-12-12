@@ -29,3 +29,7 @@ build/
 Dockerfile
 
 cloudbuild.yaml
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

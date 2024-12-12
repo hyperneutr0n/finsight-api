@@ -12,17 +12,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '$_IMAGE_NAME:latest']
 
-
-  # Step 3: Fetch service account credential as JSON
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Fetching service account credential secret..."
-        gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME > profile-bucket-key.json
-
-  # Step 4: Deploy to Cloud Run
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
@@ -33,8 +23,8 @@ steps:
           --region asia-southeast2 \
           --platform managed \
           --allow-unauthenticated \
-          --set-env-vars $(gcloud secrets versions access latest --secret=$_ENV_SECRET_NAME) \
-          --update-env-vars PROFILE_BUCKET_KEY_PATH=profile-bucket-key.json
+          --set-env-vars DOTENV_KEY=$_DOTENV_KEY \
+          --set-secrets PROFILE_BUCKET_SECRET=finsight-profile-bucket:latest
 
 options:
   logging: CLOUD_LOGGING_ONLY
