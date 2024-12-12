@@ -15,7 +15,7 @@ if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   }
 
-  fs.fileWrite('./profile-bucket-key.json', PROFILE_BUCKET_KEY_SECRET, (err) => {
+  fs.writeFile('./profile-bucket-key.json', PROFILE_BUCKET_KEY_SECRET, (err) => {
     if (err) {
       console.error('Error writing profile-bucket-key.json');
       process.exit(1);

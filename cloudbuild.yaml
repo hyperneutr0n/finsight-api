@@ -25,7 +25,7 @@ steps:
           --allow-unauthenticated \
           --set-env-vars DOTENV_KEY=$_DOTENV_KEY \
           --set-env-vars NODE_ENV=production \
-          --set-env-vars PROFILE_BUCKET_KEY_VAL='$(gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME)'
+          --set-env-vars PROFILE_BUCKET_KEY_VAL="$(gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME)"
 
   # Step 4: Use latest revision
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
