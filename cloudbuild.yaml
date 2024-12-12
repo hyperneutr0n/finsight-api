@@ -18,8 +18,6 @@ steps:
     args:
       - '-c'
       - |
-        gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME > profile-bucket-key.json
-
         gcloud run deploy finsight-api \
           --image $_IMAGE_NAME:latest \
           --region asia-southeast2 \
@@ -27,7 +25,7 @@ steps:
           --allow-unauthenticated \
           --set-env-vars DOTENV_KEY=$_DOTENV_KEY \
           --set-env-vars NODE_ENV=production \
-          --set-env-vars PROFILE_BUCKET_KEY_VAL=$(gcloud secrets versions access latest --secret=finsight-profile-bucket)
+          --set-env-vars PROFILE_BUCKET_KEY_VAL=$(gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME)
 
 options:
   logging: CLOUD_LOGGING_ONLY
