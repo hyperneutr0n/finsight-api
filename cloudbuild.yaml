@@ -27,7 +27,7 @@ steps:
           --allow-unauthenticated \
           --set-env-vars DOTENV_KEY=$_DOTENV_KEY \
           --set-env-vars NODE_ENV=production \
-          --set-env-vars PROFILE_BUCKET_KEY_VAL=$(gcloud secrets version latest --secret=finsight-profile-bucket)
+          --set-env-vars PROFILE_BUCKET_KEY_VAL=$(gcloud secrets versions latest --secret=finsight-profile-bucket)
 
 options:
   logging: CLOUD_LOGGING_ONLY
