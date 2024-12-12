@@ -9,7 +9,7 @@ const express = require("express");
  * Setup profile-bucket-key
  */
 if (process.env.NODE_ENV === 'production') {
-  const PROFILE_BUCKET_KEY_SECRET = process.env.PROFILE_BUCKET_KEY_VAL;
+  const PROFILE_BUCKET_KEY_SECRET = Buffer.from(process.env.PROFILE_BUCKET_KEY_VAL, 'base64').toString('utf8');
   if (!PROFILE_BUCKET_KEY_SECRET) {
     console.error('PROFILE_BUCKET_KEY is undefined');
     process.exit(1);
