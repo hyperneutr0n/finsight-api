@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
           message: "Login successful!",
           uid: user.uid,
           username: userSnap.data().username,
-          token,
+          profileUrl: userSnap.data().profileUrl,
         });
       }
       return res.status(404).json({
