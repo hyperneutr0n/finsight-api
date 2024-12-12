@@ -33,6 +33,6 @@ steps:
     args:
       - '-c'
       - |
-         gcloud run services update-traffic finsight-api --to-latest
+         gcloud run services update-traffic finsight-api --to-latest --region asia-southeast2
 options:
   logging: CLOUD_LOGGING_ONLY
