@@ -64,6 +64,7 @@ exports.read = async (req, res) => {
 
     const posts = postSnapshot.docs.map((doc) => ({
       id: doc.id,
+      username: snapshot.data().username,
       ...doc.data(),
     }));
 
@@ -112,6 +113,7 @@ exports.readProfile = async (req, res) => {
 
     const posts = postSnapshot.docs.map((doc) => ({
       id: doc.id,
+      username: snapshot.data().username,
       ...doc.data(),
     }));
 
