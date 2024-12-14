@@ -1,7 +1,9 @@
 substitutions:
+  _SERVICE_NAME: 'finsight-api'
   _IMAGE_NAME: 'asia-southeast2-docker.pkg.dev/bangkit-capstone-441617/finsight-api/finsight-api'
   _ENV_SECRET_NAME: 'finsight-env-secret'
   _CREDENTIAL_SECRET_NAME: 'finsight-profile-bucket'
+  _REGION: 'asia-southeast2'
   
 steps:
   # Step 1: Build the Docker image
@@ -18,14 +20,14 @@ steps:
     args:
       - '-c'
       - |
-        gcloud run deploy finsight-api \
+        gcloud run deploy $_SERVICE_NAME \
           --image $_IMAGE_NAME:latest \
           --region asia-southeast2 \
           --platform managed \
           --allow-unauthenticated \
           --set-env-vars DOTENV_KEY=$_DOTENV_KEY \
           --set-env-vars NODE_ENV=production \
-          --set-env-vars PROFILE_BUCKET_KEY_VAL="$(gcloud secrets versions access latest --secret=finsight-profile-bucket | base64 -w 0)"
+          --set-env-vars PROFILE_BUCKET_KEY_VAL="$(gcloud secrets versions access latest --secret=$_CREDENTIAL_SECRET_NAME | base64 -w 0)"
 
   # Step 4: Use latest revision
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -33,6 +35,6 @@ steps:
     args:
       - '-c'
       - |
-         gcloud run services update-traffic finsight-api --to-latest --region asia-southeast2
+         gcloud run services update-traffic $_SERVICE_NAME --to-latest --region $_REGION
 options:
   logging: CLOUD_LOGGING_ONLY
