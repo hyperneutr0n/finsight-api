@@ -169,8 +169,3 @@ Team C242‑PS460 – Bangkit 2024
 Feel free to [open an issue](https://github.com/hyperneutr0n/finsight-api/issues) or reach out to us for support.
 
 ```
-
----
-
-If you'd like me to review specific files (e.g., `routes`, `controllers`, or `utils`) and help write Swagger/OpenAPI specs or inline documentation, I can help with that too. Let me know!
-```
